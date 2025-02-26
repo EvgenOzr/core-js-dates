@@ -60,9 +60,9 @@ function getDayName(date) {
     'Friday',
     'Saturday',
   ];
-  const newDay = new Date(date);
-  if (new Date() < newDay) return days[newDay.getDay() - 1];
-  return days[newDay.getDay()];
+  const utcDate = new Date(date);
+  const dayOfWeek = utcDate.getUTCDay();
+  return days[dayOfWeek];
 }
 
 /**
@@ -209,16 +209,17 @@ function getCountWeekendsInMonth(month, year) {
  * Date(2024, 1, 23) => 8
  */
 function getWeekNumberByDate(date) {
-  const startYear = new Date(date.getUTCFullYear(), 0, 1);
-  const time =
-    date.getTime() +
-    date.getTimezoneOffset() -
-    new Date(
-      startYear.getUTCFullYear(),
-      startYear.getUTCMonth(),
-      startYear.getUTCDate()
-    ).getTime();
-  return Math.ceil(time / (1000 * 60 * 60 * 24 * 7));
+  const targetDate = new Date(date.valueOf());
+  const dayOffset = (targetDate.getDay() + 6) % 7;
+  targetDate.setDate(targetDate.getDate() - dayOffset + 3);
+  const firstThursday = targetDate.valueOf();
+  targetDate.setMonth(0, 1);
+  if (targetDate.getDay() !== 4) {
+    targetDate.setDate(
+      targetDate.getDate() + ((4 - targetDate.getDay() + 7) % 7)
+    );
+  }
+  return 1 + Math.ceil((firstThursday - targetDate) / 604800000);
 }
 
 /**
@@ -233,22 +234,16 @@ function getWeekNumberByDate(date) {
  * Date(2023, 1, 1) => Date(2023, 9, 13)
  */
 function getNextFridayThe13th(date) {
-  function getNextPossible13Friday(dateCheck) {
-    const newDate = new Date(dateCheck);
-    function toFriday(day) {
-      if (day === 5) return 7;
-      if (day === 6) return 6;
-      return 5 - day;
-    }
-    return new Date(
-      newDate.getTime() + toFriday(newDate.getUTCDay()) * (1000 * 60 * 60 * 24)
-    );
+  const startDate = date instanceof Date ? new Date(date) : new Date();
+  if (startDate.getDate() > 13) {
+    startDate.setMonth(startDate.getMonth() + 1);
   }
-  let newFriday = getNextPossible13Friday(date);
-  while (newFriday.getUTCDate() !== 13) {
-    newFriday = getNextPossible13Friday(newFriday);
+  startDate.setDate(13);
+  while (startDate.getDay() !== 5) {
+    startDate.setMonth(startDate.getMonth() + 1);
+    startDate.setDate(13);
   }
-  return new Date(newFriday.getTime() - 1000 * 60 * 60 * 24);
+  return startDate;
 }
 
 /**
