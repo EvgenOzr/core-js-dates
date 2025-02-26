@@ -211,7 +211,8 @@ function getCountWeekendsInMonth(month, year) {
 function getWeekNumberByDate(date) {
   const startYear = new Date(date.getUTCFullYear(), 0, 1);
   const time =
-    date.getTime() -
+    date.getTime() +
+    date.getTimezoneOffset() -
     new Date(
       startYear.getUTCFullYear(),
       startYear.getUTCMonth(),
@@ -305,7 +306,7 @@ function getWorkSchedule(period, countWorkDays, countOffDays) {
     const newDate = new Date(i);
     if (countWork) {
       result.push(
-        `${getZero(newDate.getDate())}-${getZero(newDate.getMonth() + 1)}-${newDate.getFullYear()}`
+        `${getZero(newDate.getUTCDate())}-${getZero(newDate.getUTCMonth() + 1)}-${newDate.getUTCFullYear()}`
       );
       countWork -= 1;
     } else {
